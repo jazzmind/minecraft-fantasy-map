@@ -14,6 +14,7 @@ import {
 } from '../utils/coordinates';
 import type { WorldDataAPI } from '../hooks/useWorldData';
 import { exportWorldData, importWorldData } from '../utils/storage';
+import { generateShareUrl } from '../utils/permalink';
 import CoordInput from './CoordInput';
 
 interface SidebarProps {
@@ -70,6 +71,7 @@ export default function Sidebar({
   const [showAddTunnel, setShowAddTunnel] = useState(false);
   const [showAddObstacle, setShowAddObstacle] = useState<string | null>(null);
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   // Location form state
   const [locName, setLocName] = useState('');
@@ -960,9 +962,23 @@ export default function Sidebar({
             </div>
 
             <div className="form-card">
-              <h3>Import / Export</h3>
+              <h3>Share & Export</h3>
               <div className="form-actions">
-                <button className="btn-primary" onClick={() => exportWorldData(data)}>
+                <button className="btn-primary" onClick={() => {
+                  const url = generateShareUrl(data);
+                  navigator.clipboard.writeText(url).then(() => {
+                    setShareCopied(true);
+                    setTimeout(() => setShareCopied(false), 2000);
+                  });
+                }}>
+                  {shareCopied ? 'Copied!' : 'Copy Share Link'}
+                </button>
+              </div>
+              <p className="help-text" style={{ marginTop: 6, fontSize: '0.75rem', opacity: 0.7 }}>
+                Share link includes all locations, tunnels, portals & seed.
+              </p>
+              <div className="form-actions" style={{ marginTop: 8 }}>
+                <button className="btn-secondary" onClick={() => exportWorldData(data)}>
                   Export JSON
                 </button>
                 <button className="btn-secondary" onClick={handleImport}>
