@@ -278,9 +278,6 @@ export default function Sidebar({
     setPortalNZ(ideal.z);
   }
 
-  const selectedLocation = data.locations.find((l) => l.id === selectedLocationId);
-  const selectedTunnel = data.tunnels.find((t) => t.id === selectedTunnelId);
-
   // Locations typed as 'portal' that don't already have a matching PortalPair
   const portalLocations = data.locations.filter((loc) => {
     if (loc.type !== 'portal') return false;

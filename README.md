@@ -1,73 +1,106 @@
-# React + TypeScript + Vite
+# Minecraft Fantasy Map
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A hand-drawn fantasy-style map tracker for Minecraft worlds. Track your bases, plan tunnel routes, manage portal pairs, and visualize terrain — all rendered in a sketchy, parchment-like aesthetic inspired by fantasy novel maps.
 
-Currently, two official plugins are available:
+**[Live Demo](https://jazzmind.github.io/minecraft-fantasy-map/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![Surface biome map with locations and tunnels](docs/screenshot-surface.png)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Hand-Drawn Map
+- Rough.js-powered sketchy rendering on HTML Canvas
+- Parchment-style grid, compass rose, and legend
+- Pan, zoom, and click-to-select interaction
 
-## Expanding the ESLint configuration
+### Accurate Biome Generation
+- Enter your world seed to see biomes rendered on the map
+- Uses a TypeScript port of [cubiomes](https://github.com/Cubitect/cubiomes) for accurate Overworld biome placement
+- Supports Java & Bedrock seeds (biome parity for 1.18+)
+- Approximate terrain for Nether and End dimensions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Location & Tunnel Tracking
+- Mark bases, villages, custom points, and portals with coordinates
+- Plan and track tunnel connections between locations (planned / in progress / complete)
+- Log obstacles encountered during tunneling (water, lava, caverns)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Portal Planning
+- Track Overworld ↔ Nether portal pairs
+- Calculates ideal Nether coordinates (8:1 ratio)
+- Warns about linking offset issues
+- Portals added as locations auto-sync to the portal planner
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Y-Level Layers
+- Onion-skin visualization at any Y level (-64 to 320)
+- Underground view shows approximate caverns, aquifers, and lava lakes
+- Quick-jump buttons for Bedrock, Diamonds, Sea Level, Surface, and Clouds
+- Items fade based on Y-distance from the focus level
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+![Underground view at diamond level](docs/screenshot-underground.png)
+
+### Dimension Switching
+- Overworld, Nether, and End views
+- Nether coordinates auto-convert at 8:1 ratio
+- Each dimension has its own terrain style
+
+![Nether dimension view](docs/screenshot-nether.png)
+
+### Portal Management
+
+![Portal pair tracking and planning](docs/screenshot-portals.png)
+
+### Data Management
+- All data stored locally in your browser (localStorage)
+- JSON import/export for backup and sharing
+- No account or server required
+
+## Getting Started
+
+### Use Online
+
+Visit the **[live demo](https://jazzmind.github.io/minecraft-fantasy-map/)** — no installation needed.
+
+### Run Locally
+
+```bash
+git clone https://github.com/jazzmind/minecraft-fantasy-map.git
+cd minecraft-fantasy-map
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **React 19** + TypeScript
+- **Vite** for dev server and builds
+- **Rough.js** for hand-drawn canvas rendering
+- **cubiomes port** for accurate Minecraft biome generation
+- **localStorage** for persistence (no backend)
+
+## How It Works
+
+### Biome Generation
+
+The biome engine is a TypeScript port of the C library [cubiomes](https://github.com/Cubitect/cubiomes). It implements Minecraft's actual terrain generation algorithm:
+
+1. **Xoroshiro128++ PRNG** initialized from the world seed
+2. **Double Perlin noise** for six climate parameters (temperature, humidity, continentalness, erosion, peaks & valleys, weirdness)
+3. **Biome tree lookup** mapping climate values to specific biome IDs
+4. **Category mapping** to group ~60 biome IDs into visual categories for the map
+
+This produces biome placements that match the real game for any seed (Java/Bedrock 1.18+).
+
+### Underground Features
+
+When viewing below sea level, the map uses noise functions to approximate:
+- **Caverns** — cheese-cave and spaghetti-cave style openings
+- **Aquifers** — underground water pools (Y -10 to 50)
+- **Lava lakes** — concentrated below Y 0, dominant below Y -48
+
+These are approximations for planning purposes, not block-accurate representations.
+
+## License
+
+MIT

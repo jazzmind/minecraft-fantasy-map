@@ -251,7 +251,6 @@ export function generateTerrainGrid(
   const cells: TerrainCell[][] = [];
 
   const SEA_LEVEL = 63;
-  const WATER_BIOMES = new Set(['deep_ocean', 'ocean', 'river']);
 
   if (dimension === 'overworld') {
     const gen = getGenerator(seed);
@@ -266,31 +265,23 @@ export function generateTerrainGrid(
         const biomeId = gen.getBiomeAt(wx, wz, Math.max(rawSurfaceY, SEA_LEVEL));
         const surfaceBiome = biomeToCategory(biomeId) as TerrainType;
 
-        // For water biomes, the effective surface the player sees is sea level
-        const effectiveSurface = WATER_BIOMES.has(surfaceBiome)
-          ? SEA_LEVEL
-          : Math.max(rawSurfaceY, SEA_LEVEL);
-
         let type: TerrainType;
 
-        if (yLevel >= effectiveSurface - 4) {
-          // At or near the surface: show the biome
+        if (yLevel >= SEA_LEVEL) {
+          // At or above sea level: always show surface biome.
+          // The getSurfaceHeight estimate is unreliable, and underground
+          // features are approximations — don't let them bleed through.
           type = surfaceBiome;
         } else {
-          // Underground — use noise to determine cavern/aquifer/lava/stone
+          // Below sea level: underground view
           type = getUndergroundType(wx, wz, yLevel, seedHash);
-        }
-
-        // Above ground: show air (but only well above, with tolerance)
-        if (yLevel > effectiveSurface + 10) {
-          type = 'air';
         }
 
         row.push({
           type,
           surfaceBiome,
-          surfaceY: effectiveSurface,
-          elevation: effectiveSurface / 320,
+          surfaceY: SEA_LEVEL,
+          elevation: rawSurfaceY / 320,
           moisture: 0.5,
           temperature: 0.5,
         });

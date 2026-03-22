@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import rough from 'roughjs';
 import type { RoughCanvas } from 'roughjs/bin/canvas';
 import type { WorldData, Location, Tunnel, Dimension, Obstacle, PortalPair } from '../types';
@@ -338,11 +338,39 @@ function drawPortalPair(
   }
 }
 
-function drawLegend(ctx: CanvasRenderingContext2D, rc: RoughCanvas, x: number, y: number) {
+function drawLegend(ctx: CanvasRenderingContext2D, rc: RoughCanvas, x: number, y: number, terrainEnabled: boolean) {
   ctx.save();
 
-  // background
-  rc.rectangle(x, y, 150, 148, {
+  const markerItems = [
+    { label: 'Planned', dash: '- - - -', color: '#7f8c8d' },
+    { label: 'In Progress', dash: '— — —', color: '#e67e22' },
+    { label: 'Complete', dash: '———', color: '#27ae60' },
+    { label: 'Water', shape: '●', color: '#3498db' },
+    { label: 'Lava', shape: '▲', color: '#e74c3c' },
+    { label: 'Cavern', shape: '■', color: '#555' },
+    { label: 'Portal', shape: '▯', color: '#9b59b6' },
+  ];
+
+  const biomeItems = [
+    { label: 'Ocean', color: '#4a90b8' },
+    { label: 'River', color: '#5da0c5' },
+    { label: 'Beach', color: '#d4c088' },
+    { label: 'Plains', color: '#8cb860' },
+    { label: 'Forest', color: '#5a8a3c' },
+    { label: 'Jungle', color: '#3d8840' },
+    { label: 'Swamp', color: '#6b7a4a' },
+    { label: 'Desert', color: '#d4b86a' },
+    { label: 'Savanna', color: '#b8a850' },
+    { label: 'Mountains', color: '#8a8a7a' },
+    { label: 'Snowy', color: '#d8dce8' },
+  ];
+
+  const markerRows = markerItems.length;
+  const biomeRows = terrainEnabled ? biomeItems.length : 0;
+  const sectionGap = terrainEnabled ? 20 : 0;
+  const totalHeight = 28 + markerRows * 16 + sectionGap + biomeRows * 14 + 10;
+
+  rc.rectangle(x, y, 155, totalHeight, {
     fill: 'rgba(255,252,240,0.92)',
     fillStyle: 'solid',
     roughness: 1.2,
@@ -356,23 +384,32 @@ function drawLegend(ctx: CanvasRenderingContext2D, rc: RoughCanvas, x: number, y
   ctx.fillText('LEGEND', x + 10, y + 18);
 
   ctx.font = `10px ${FONT_FAMILY}`;
-  const items = [
-    { label: 'Planned', dash: '- - - -', color: '#7f8c8d' },
-    { label: 'In Progress', dash: '— — —', color: '#e67e22' },
-    { label: 'Complete', dash: '———', color: '#27ae60' },
-    { label: 'Water', shape: '●', color: '#3498db' },
-    { label: 'Lava', shape: '▲', color: '#e74c3c' },
-    { label: 'Cavern', shape: '■', color: '#555' },
-    { label: 'Portal', shape: '▯', color: '#9b59b6' },
-  ];
-
-  items.forEach((item, i) => {
+  markerItems.forEach((item, i) => {
     const iy = y + 34 + i * 16;
     ctx.fillStyle = item.color;
     ctx.fillText(item.dash || item.shape || '', x + 10, iy);
     ctx.fillStyle = '#444';
     ctx.fillText(item.label, x + 55, iy);
   });
+
+  if (terrainEnabled) {
+    const biomeStartY = y + 34 + markerRows * 16 + 6;
+    ctx.font = `bold 10px ${FONT_FAMILY}`;
+    ctx.fillStyle = '#555';
+    ctx.fillText('BIOMES', x + 10, biomeStartY);
+
+    ctx.font = `9px ${FONT_FAMILY}`;
+    biomeItems.forEach((item, i) => {
+      const iy = biomeStartY + 14 + i * 14;
+      ctx.fillStyle = item.color;
+      ctx.fillRect(x + 10, iy - 8, 10, 10);
+      ctx.strokeStyle = '#999';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x + 10, iy - 8, 10, 10);
+      ctx.fillStyle = '#444';
+      ctx.fillText(item.label, x + 26, iy);
+    });
+  }
 
   ctx.restore();
 }
@@ -641,7 +678,8 @@ export default function MapCanvas({
     drawCompassRose(rc, ctx, canvasSize.width - 50, 55, 70);
 
     // Legend (bottom-left)
-    drawLegend(ctx, rc, 10, canvasSize.height - 163);
+    const legendHeight = terrainEnabled ? 370 : 163;
+    drawLegend(ctx, rc, 10, canvasSize.height - legendHeight, terrainEnabled);
 
     // Dimension label
     ctx.save();

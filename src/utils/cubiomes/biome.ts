@@ -4,10 +4,9 @@
 
 import {
   lerp, xor64, add64, multiply64, rotl64,
-  leftShift64, rightShift64, intToUint64, uint64ToInt64,
-  MAX_UINT64,
+  leftShift64, rightShift64,
 } from './math';
-import { BIOME, BIOME_VALUES, BIOME_PARAMS, BIOME_TREE } from './const';
+import { BIOME, BIOME_PARAMS, BIOME_TREE } from './const';
 
 // Pre-process biome tree and params from BigInt to Number for fast lookups.
 // Each BIOME_TREE node is a 64-bit value encoding:
@@ -41,10 +40,13 @@ for (let i = 0; i < BIOME_PARAMS.length; i++) {
   PARAMS_NUM[i] = [Number(BIOME_PARAMS[i][0]), Number(BIOME_PARAMS[i][1])];
 }
 
-type BiomeValue = (typeof BIOME)[keyof typeof BIOME];
-
 class Xoroshiro {
-  constructor(public low: bigint, public high: bigint) {}
+  low: bigint;
+  high: bigint;
+  constructor(low: bigint, high: bigint) {
+    this.low = low;
+    this.high = high;
+  }
 }
 
 class PerlinNoise {
